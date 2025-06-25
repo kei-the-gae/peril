@@ -32,7 +32,7 @@ func SubscribeJSON[T any](
 	queueType SimpleQueueType,
 	handler func(T) Acktype,
 ) error {
-	return subscribe[T](
+	return subscribe(
 		conn,
 		exchange,
 		queueName,
@@ -55,7 +55,7 @@ func SubscribeGob[T any](
 	queueType SimpleQueueType,
 	handler func(T) Acktype,
 ) error {
-	return subscribe[T](
+	return subscribe(
 		conn,
 		exchange,
 		queueName,
@@ -84,6 +84,11 @@ func subscribe[T any](
 	ch, queue, err := DeclareAndBind(conn, exchange, queueName, key, queueType)
 	if err != nil {
 		return fmt.Errorf("could not declare and bind queue: %v", err)
+	}
+
+	err = ch.Qos(10, 0, false)
+	if err != nil {
+		return fmt.Errorf("could not set QoS: %v", err)
 	}
 
 	msgs, err := ch.Consume(
